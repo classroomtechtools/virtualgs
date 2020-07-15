@@ -1,0 +1,124 @@
+import VM from 'vm';
+import fs from 'fs';
+import path from 'path';
+
+const codeCache = Object.create(null);
+
+// place any builtin mocks here
+class Logger {
+    constructor() {
+        this._log = [];
+    }
+    log (text) {
+        console.log(text + 'from inside!');  // output!
+    }
+    get () {
+        return this._log.join('\n');
+    }
+    static new (...params) {
+        return new Logger(...params);
+    }
+}
+
+class ScriptApp {
+    getOauthToken () {
+        return 'voila';
+    }
+    static new (...params) {
+        return new ScriptApp(...params);
+    }
+}
+
+const builtin_mocks = {
+    "Logger": Logger.new(),
+    "ScriptApp": ScriptApp.new(),
+}
+
+/**
+ * Promise all
+ * @author Loreto Parisi (loretoparisi at gmail dot com)
+ */
+function promiseAllP(items, block) {
+    var promises = [];
+    items.forEach(function(item,index) {
+        promises.push( function(item,i) {
+            return new Promise(function(resolve, reject) {
+                return block.apply(this,[item,index,resolve,reject]);
+            });
+        }(item,index))
+    });
+    return Promise.all(promises);
+} //promiseAll
+
+/**
+ * read files
+ * @param dirname string
+ * @return Promise
+ * @author Loreto Parisi (loretoparisi at gmail dot com)
+ * @see http://stackoverflow.com/questions/10049557/reading-all-files-in-a-directory-store-them-in-objects-and-send-the-object
+ */
+function readFiles(dirname) {
+    return new Promise((resolve, reject) => {
+        fs.readdir(dirname, function(err, filenames) {
+            if (err) return reject(err);
+            promiseAllP(filenames,
+            (filename,index,resolve,reject) =>  {
+                fs.readFile(path.resolve(dirname, filename), 'utf-8', function(err, content) {
+                    if (err) return reject(err);
+                    return resolve({filename: filename, contents: content});
+                });
+            })
+            .then(results => {
+                return resolve(results);
+            })
+            .catch(error => {
+                return reject(error);
+            });
+        });
+  });
+}
+
+async function gatherCode (directory) {
+    const code = [];
+    let files = [];
+    try {
+        files = await readFiles(directory);
+    } catch (e) {
+        throw new RangeError(`${directory} does not exist!`);
+    }
+    files.sort().forEach( (item, index) => {
+        code.push(item.contents);
+    });
+    return code.join('\n');
+}
+
+function execute(ctx, self, name, ...params) {
+    // TODO error checks
+    return ctx[name].apply(self, params);
+}
+
+async function setup(directory, mocks={}) {
+    // get the raw code
+    let script = codeCache[directory];
+
+    if (!script) {
+        const code = await gatherCode(directory);
+        script = new VM.Script(code);
+        codeCache[directory] = script;
+    }
+
+    // contextify: i.e. make a runtime with particular globals
+    const globals = {
+        ...builtin_mocks,
+        ...mocks
+    };
+    const ctx = VM.createContext(globals);
+
+    // run code in that context
+    script.runInContext(ctx);
+
+    // return the context which has been updated from above
+    return ctx;
+}
+
+export {execute, setup};

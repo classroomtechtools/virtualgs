@@ -1,0 +1,23 @@
+{
+  "name": "virtualgs",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/virtualgs.js",
+  "scripts": {
+    "test": "ava"
+  },
+  "ava": {
+    "verbose": true
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ava": "^3.10.1",
+    "sinon": "^9.0.2"
+  },
+  "devDependencies": {
+    "ava": "^3.10.1",
+    "sinon": "^9.0.2"
+  }
+}
