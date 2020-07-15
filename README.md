@@ -2,13 +2,15 @@
 
 Run V8-compatible AppsScripts/JavaScript code locally, useful for testing or for quick work.
 
-Replace identifiers like `SpreadsheetApp` with objects that replace its functionality. 
+Substitute identifiers like `SpreadsheetApp` with objects augmented with tools such as [sinon](https://sinonjs.org) to replace their basic functionality.
 
 The virtualized code is itself run syncronously, like on the AppsScripts platform, but multiple invocations of them are run asyncronously.
 
 ## Motivation
 
-Decoupling scripts from the online V8 AppsScripts engine has potential benefits, mostly in the development cyle. We can use this tool to run test to ensure code works. In cases where the network is not utilized much, for example, or if the network is used but can be easily mocked.
+Decoupling scripts from the online V8 AppsScripts engine has potential benefits, mostly in the development cyle. We can use this tool to run test to ensure code works.
+
+The author uses this method to ensure code he writes is more maintainable.
 
 We could also use this to have a JavaScript runtime that works the same way as it does online.
 
