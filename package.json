@@ -1,5 +1,5 @@
 {
-  "name": "virtualgs",
+  "name": "@classroomtechtools/virtualgs",
   "type": "module",
   "version": "1.0.0",
   "description": "",
@@ -10,12 +10,8 @@
   "ava": {
     "verbose": true
   },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "ava": "^3.10.1",
-    "sinon": "^9.0.2"
-  },
+  "author": "Adam Morris <classroomtechtools.ctt@gmail.com> (https://classroomtechtools.com)",
+  "license": "MIT",
   "devDependencies": {
     "ava": "^3.10.1",
     "sinon": "^9.0.2"
