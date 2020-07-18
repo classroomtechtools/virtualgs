@@ -32,10 +32,11 @@ A directory full of scripts can be run like a project. This this not run one scr
 So if you have a project in the online editor that has just one file, `Code.gs` with `MyFunction`, which lives in the 'scripts' directory:
 
 ```js
-import {virtualgs} from '@classroomtechtools/virtualgs';
+import virtualgs from '@classroomtechtools/virtualgs';
 
-virtualgs.directory = 'scripts';
-const result = virtualgs('My Function', parameters);
+const invoke = virtualgs('scripts');
+invoke('My Function', parameters)
+  .then(result => console.log(result));
 ```
 
 And voila, you have a local AppsScripts runtime.
@@ -50,13 +51,13 @@ function myFunction () {
 
 // tests/index.js
 import test from 'ava';
-import {virtualgs} from 'virtualgs';
+import virtualgs from 'virtualgs';
 
 test("do test", async t => {
-  virtualgs.directory = "scripts";
-  const parameters = ['some', 'params', 'to send the function'];
   const globals = {};  // you can mock things like Logger, SpreadsheetApp, etc
-  const result = await virtualgs('myFunction', parameters, globals);
+  const invoke = virtualgs("scripts", globals);
+  const parameters = ['some', 'params', 'to send the function'];
+  const result = await invoke('myFunction', parameters);
   t.true(result === 'yes');
 });
 ```
