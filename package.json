@@ -15,5 +15,8 @@
   "devDependencies": {
     "ava": "^3.10.1",
     "sinon": "^9.0.2"
+  },
+  "dependencies": {
+    "vm2": "^3.9.2"
   }
 }

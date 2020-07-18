@@ -1,4 +1,4 @@
-import VM from 'vm';
+import VM2 from 'vm2';
 import fs from 'fs';
 import path from 'path';
 
@@ -115,7 +115,7 @@ async function gatherCode (directory) {
     }
 
     files
-        .filter(item => item.filename.length > 3 && item.filename.split('.').pop() == 'js')
+        .filter(item => item.filename.length > 3 && item.filename.split('.').pop() === 'js')
         .sort(item => item.filename).forEach(item => {
             code.push(item.contents);
         });
@@ -131,32 +131,30 @@ function execute(ctx, self, endpoint, ...params) {
 }
 
 async function setup(directory, mocks={}) {
-    // get the raw code
     let script = codeCache[directory];
-
     if (!script) {
         const code = await gatherCode(directory);
-        try {
-            script = new VM.Script(code);
-        } catch (e) {
-            throw new SyntaxError("There is a syntax error in your code preventing it from being compiled: " + e.message);
-        }
-
+        script = new VM2.VMScript(code);
         codeCache[directory] = script;
     }
 
     // contextify: i.e. make a runtime with particular globals
-    const globals = {
+    const sandbox = {
         ...builtin_mocks,
         ...mocks
     };
-    const ctx = VM.createContext(globals);
 
-    // run code in that context
-    script.runInContext(ctx);
+    const vm = new VM2.VM({
+        sandbox,
+        require: {
+            context: 'host'
+        }
+    });
 
-    // return the context which has been updated from above
-    return ctx;
+    vm.run(script);
+
+    // finally
+    return vm.sandbox;
 }
 
 export {execute, setup};
