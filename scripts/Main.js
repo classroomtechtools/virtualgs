@@ -12,3 +12,7 @@ function BlankFunction () {
 function Echo (param) {
     return param;
 }
+
+function Cannot_() {
+    return 'works';  // this should not be accessible
+}

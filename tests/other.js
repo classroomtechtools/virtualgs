@@ -1,9 +1,8 @@
 import sinon from 'sinon';
 import test from 'ava';
-import {virtualgs} from '../src/virtualgs.js';
+import virtualgs from '../src/virtualgs.js';
 
 test('globals can be mocks or stubs with sinon', async t => {
-    virtualgs.directory = 'scripts';
     const parameters = {};
     const globals = {
         SpreadsheetApp: {
@@ -16,7 +15,9 @@ test('globals can be mocks or stubs with sinon', async t => {
         }
     };
 
-    const actual = await virtualgs('Hello', parameters, globals);
+    const invoke = virtualgs('scripts', globals);
+
+    const actual = await invoke('Hello', parameters);
     t.true(actual == 'result!');
     t.true(globals.SpreadsheetApp.openFromId.calledWith('17oDKYdAv-vc59K9Mr5KNGXOFon2_04BrbVeOQu0dyiU'));
 });

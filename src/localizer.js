@@ -29,10 +29,37 @@ class ScriptApp {
     }
 }
 
+class Cache {
+    constructor () {
+        this._store = Object.create(null);
+    }
+    get (key) {
+        return this._store[key];
+    }
+    static new () {
+        return new Cache();
+    }
+}
+
+class CacheService {
+    static getScriptCache () {
+        return Cache.new();
+    }
+    static getUserCache () {
+        return Cache.new();
+    }
+    static getDocumentsCache() {
+        return Cache.new();
+    }
+}
+
 const builtin_mocks = {
+    console: console,
     "Logger": Logger.new(),
     "ScriptApp": ScriptApp.new(),
-}
+    "CacheService": CacheService,
+    process: process
+};
 
 /**
  * Promise all
@@ -86,15 +113,21 @@ async function gatherCode (directory) {
     } catch (e) {
         throw new RangeError(`${directory} does not exist!`);
     }
-    files.sort().forEach( (item, index) => {
-        code.push(item.contents);
-    });
+
+    files
+        .filter(item => item.filename.length > 3 && item.filename.split('.').pop() == 'js')
+        .sort(item => item.filename).forEach(item => {
+            code.push(item.contents);
+        });
     return code.join('\n');
 }
 
-function execute(ctx, self, name, ...params) {
+function execute(ctx, self, endpoint, ...params) {
     // TODO error checks
-    return ctx[name].apply(self, params);
+    if (!(endpoint in ctx)) {
+        throw new Error(`There is no endpoint with the name ${endpoint}. Only have ${Object.keys(ctx)}`);
+    }
+    return ctx[endpoint].apply(self, params);
 }
 
 async function setup(directory, mocks={}) {
@@ -103,7 +136,12 @@ async function setup(directory, mocks={}) {
 
     if (!script) {
         const code = await gatherCode(directory);
-        script = new VM.Script(code);
+        try {
+            script = new VM.Script(code);
+        } catch (e) {
+            throw new SyntaxError("There is a syntax error in your code preventing it from being compiled: " + e.message);
+        }
+
         codeCache[directory] = script;
     }
 
