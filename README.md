@@ -2,7 +2,9 @@
 
 Run V8-compatible AppsScripts/JavaScript code locally, useful for testing or for quick work.
 
-Substitute identifiers like `SpreadsheetApp` with objects augmented with tools such as [sinon](https://sinonjs.org) to replace their basic functionality.
+It uses virtualization to run. You give it a directory of files that end with `.js`, and it concats them, and then executes the code. You can then invoke endpoints (defined functions).
+
+For testing, substitute identifiers like `SpreadsheetApp` with objects augmented with tools such as [sinon](https://sinonjs.org) to replace their basic functionality.
 
 The virtualized code is itself run syncronously, like on the AppsScripts platform, but multiple invocations of them are run asyncronously.
 
@@ -18,11 +20,11 @@ We could also use this to have a JavaScript runtime that works the same way as i
 
 `npm install @classroomtechtools/virtualgs`
 
-There are no dependencies. It uses simple caching and compiles code only once per run. Under the hood it uses the built-in `vm` package.
+There are no dependencies. It uses simple caching and compiles code only once per run. Under the hood it uses the [vm2 package](https://github.com/patriksimek/vm2). This is better than the built-in vm package, as it supports `console.log` out-of-the-box.
 
 ## Usage
 
-A directory full of scripts can be run like a project. This this not run one script file:
+A directory full of scripts (with js extension) can be run like an AppsScripts project.
 
 1. Provide a directory where the scripts are, same as a project in AppsScript online
 2. It executes the global scope of the files in alphabetical order, just like the platform
@@ -34,7 +36,7 @@ So if you have a project in the online editor that has just one file, `Code.gs` 
 ```js
 import virtualgs from '@classroomtechtools/virtualgs';
 
-const invoke = virtualgs('scripts');
+const invoke = virtualgs('scripts');  // scripts is the directory
 invoke('My Function', parameters)
   .then(result => console.log(result));
 ```
@@ -73,10 +75,11 @@ Even more usefully, you can use a package like `sinon` to create the globals for
 This package is checked with unit tests, `npm run test`:
 
 ```
-  ✔ throws TypeError if directory not assigned
-  ✔ throws range error if directory cannot be found
-  ✔ pass parameters
-  ✔ globals can be mocks or stubs with sinon
+  ✔ index › throws TypeError if directory not assigned
+  ✔ index › throws range error if directory cannot be found
+  ✔ index › Methods ending with underscore are accessible
+  ✔ index › pass parameters
+  ✔ other › globals can be mocks or stubs with sinon
 ```
 
 
