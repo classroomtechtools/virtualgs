@@ -18,5 +18,10 @@
   },
   "dependencies": {
     "vm2": "^3.9.2"
-  }
+  },
+  "keywords": [
+    "sandbox",
+    "vm",
+    "appscripts"
+  ]
 }

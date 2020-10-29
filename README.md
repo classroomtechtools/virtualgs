@@ -85,7 +85,7 @@ Or you're learning JavaScript using Google's AppScripts.
 
 Put all your appscript code into a directory, and then use `npm test` with ava to execute the pieces of code you're testing.
 
-Use mocks to fill in 
+Use mocks to fill in identifiers that are not available locally.
 
 ## Motivation
 
@@ -151,3 +151,17 @@ And this is the idea behind running tests.
  
 Even more usefully, you can use a package like `sinon` to create the globals for tests. For an example of this in use, see the internal unit tests in the `tests/other.js` file.
 
+## Unit tests
+
+```
+  ✔ common › Passes parameters
+  ✔ common › Methods ending with underscore are executable
+  ✔ common › Multiple functions declared in two different files, last definition wins
+  ✔ errors › Throws TypeError if directory not assigned
+  ✔ errors › Throws range error if directory cannot be found
+  ✔ errors › EISDIR error if subdirectories found inside target folders
+  ✔ errors › Attempt to call function that does not exist results in error
+  ✔ errors › Errors report context, including code snippet, function, filename, directory, and line number
+  ✔ errors › Errors are thrown when script contains errors
+  ✔ mocks › Globals can be mocks or stubs with sinon
+```
