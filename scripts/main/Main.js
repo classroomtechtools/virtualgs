@@ -13,6 +13,14 @@ function Echo (param) {
     return param;
 }
 
-function Cannot_() {
-    return 'works';  // this should not be accessible
+function Cannot_(param) {
+    return param;
+}
+
+function LongScript(param) {
+    const arr = [1, 2, 3, 4];
+    arr.forEach(function (num) {
+        yikes;
+    });
+
 }

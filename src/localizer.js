@@ -99,7 +99,6 @@ const builtin_mocks = {
     console,
     ScriptApp,
     CacheService,
-    process,
     PropertiesService
 };
 
@@ -149,36 +148,69 @@ function readFiles(dirname) {
 
 async function gatherCode (directory) {
     const code = [];
-    let files = [];
+    const ret = {code: '', files: []};
+    let files;
+    let totalLines = 0;
     try {
         files = await readFiles(directory);
     } catch (e) {
-        throw new RangeError(`${directory} does not exist!`);
+        throw new RangeError(`Error found when looking for scripts inside "${directory}": ${e.message}`);
     }
+    let offset = 1;
 
     files
         .filter(item => item.filename.length > 3 && item.filename.split('.').pop() === 'js')
         .sort(item => item.filename).forEach(item => {
+            const lines = item.contents.split('\n').length;
+            totalLines += lines;
+            ret.files.push({
+                filename: item.filename,
+                startLine: offset,
+                endLine: offset + lines
+            });
+            offset += lines + 1;
             code.push(item.contents);
         });
-    return code.join('\n');
+
+    ret.code = code.join('\n');
+    ret.totalLines = totalLines;
+    return ret;
 }
 
-function execute(ctx, self, endpoint, ...params) {
+function execute(obj, self, endpoint, ...params) {
     // TODO error checks
+    const ctx = obj.sandbox;
     if (!(endpoint in ctx)) {
-        throw new Error(`There is no endpoint with the name ${endpoint}. Only have ${Object.keys(ctx)}`);
+        throw new Error(`No such function ${endpoint}. Try ${Object.keys(ctx)}`);
     }
-    return ctx[endpoint].apply(self, params);
+    try {
+        return ctx[endpoint].apply(self, params);
+    } catch (err) {
+        // figure out where the original file was
+        // we have to offset lineNumber by one because startLine and endLine are closed at both ends
+        const lineNumber = parseInt(err.stack.split('\n')[1].split(':')[1]) + 1;
+        const targets = obj.object.files.filter(function (info) {
+            return lineNumber >= info.startLine && lineNumber <= info.endLine;
+        });
+        if (targets.length !== 1) throw new Error("Unexpected issue when " + err.message);
+
+        // display context info
+        // subtract 2 from lineNumber as we are two off
+        err.code = obj.object.code.split('\n')[lineNumber-2].trim();
+        err.directory = obj.directory;
+        err.fileName = targets[0].filename
+        err.function = endpoint;
+        err.codeLineNumber = lineNumber - 1;
+        throw err;
+    }
 }
 
-async function setup(directory, mocks={}) {
-    let script = codeCache[directory];
-    if (!script) {
-        const code = await gatherCode(directory);
-        script = new VM2.VMScript(code);
-        codeCache[directory] = script;
-    }
+async function setup(directory,
+                     mocks={},
+                     sourceExtensions='js',
+                     fixAsync=false,
+                     wasm=false,
+                     console_='inherit') {
 
     // contextify: i.e. make a runtime with particular globals
     const sandbox = {
@@ -186,17 +218,34 @@ async function setup(directory, mocks={}) {
         ...mocks
     };
 
+    // compile the code
+    const codeObject = await gatherCode(directory);
+    const script = new VM2.VMScript(codeObject.code, {
+        filename: directory
+    });
+
     const vm = new VM2.VM({
         sandbox,
+        console,           // we'll use the built-in console identifier
+        wasm,              // we don't have webassembly here
+        fixAsync,          // we throws VMError on any aysnc code
+        sourceExtensions,  // we'll use js extensions to be compatible with clasp
         require: {
-            context: 'host'
+            context: 'host',
+            external: false,    // no external modules
+            builtin: [],        // no builtin modules either
         }
+        //TODO compiler: 'coffescript', // if you want coffeescript?
     });
 
     vm.run(script);
 
     // finally
-    return vm.sandbox;
+    return {
+        sandbox: vm.sandbox,
+        object: codeObject,
+        directory: directory
+    }
 }
 
 export {execute, setup};

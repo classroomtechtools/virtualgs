@@ -2,6 +2,6 @@ function Raise () {
     throw new Error("This is an error");
 }
 
-function Div0 () {
-    10 / 0;
+function undeclared_variable () {
+    this_var_doesnot_exist;
 }
