@@ -10,7 +10,7 @@ class Logger {
         this._log = [];
     }
     log (text) {
-        console.log(text + 'from inside!');  // output!
+        console.log(text);  // output!
     }
     get () {
         return this._log.join('\n');
@@ -21,11 +21,8 @@ class Logger {
 }
 
 class ScriptApp {
-    getOauthToken () {
+    static getOAuthToken () {
         return 'voila';
-    }
-    static new (...params) {
-        return new ScriptApp(...params);
     }
 }
 
@@ -35,6 +32,9 @@ class Cache {
     }
     get (key) {
         return this._store[key];
+    }
+    put (key, value) {
+        this._store[key] = value;
     }
     static new () {
         return new Cache();
@@ -53,12 +53,54 @@ class CacheService {
     }
 }
 
+class Props {
+    constructor ( ){
+        this._store = Object.create(null);
+    }
+    getProperty(key) {
+        return this._store[key];
+    }
+    getKeys() {
+        return Object.keys(this._store);
+    }
+    setProperty(key, value) {
+        this._store[key] = value;
+    }
+    setProperties(props) {
+        for (const prop in props) {
+            this._store[prop] = props[prop];
+        }
+    }
+    deleteProperty(key) {
+        delete this._store[key];
+    }
+    deleteAllProperties() {
+        this._store = Object.create(null);
+    }
+    static new () {
+        return new Props();
+    }
+}
+
+class PropertiesService {
+    static getUserProperties () {
+        return Props.new();
+    }
+    static getDocumentProperties () {
+        return Props.new();
+    }
+    static getScriptProperties () {
+        return Props.new();
+    }
+}
+
 const builtin_mocks = {
-    console: console,
     "Logger": Logger.new(),
-    "ScriptApp": ScriptApp.new(),
-    "CacheService": CacheService,
-    process: process
+    console,
+    ScriptApp,
+    CacheService,
+    process,
+    PropertiesService
 };
 
 /**
