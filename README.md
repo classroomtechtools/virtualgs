@@ -1,19 +1,29 @@
 # virtualgs
 
-Run V8-compatible AppsScripts/JavaScript code locally by making a sandboxed environment that runs the same as in the online editor. Batteries included.
+Run V8-compatible AppsScripts/JavaScript code locally by making a sandboxed environment. Batteries included.
 
-## What it does
+## Features
 
-- Runs appscripts files locally on your computer in same execution environment as the online editor, syncronously
+### What it does
+
+- Runs appscripts files locally on your computer in nearly-same execution environment as the online editor
+- Allows you to develop appscript code, great for learning
 - Appscripts files that end with `.js` in a folder is the same as having all the files in the project in the online editor
 - Simple mocks for `PropertyServices`, `CacheService`, and `Logger` built-in
 - Debug appscript files with `debugger` keyword
 - `console.log` supported
-- Traceback errors point to where the troublesome code
+- Traceback errors point to where the troublesome code is
 - Compatible with clasp
 - Compatible with ava for asyncronous tests (while virtualized code remains syncronous)
 - Compatible with mockers such as sinon
 - Passes all unit tests, which also give examples of how to use it
+
+### What it doesn't do
+
+- It does not transpile your code into javascript that is 100% compatiable with the runtime on the server 
+- It doesn't tell you that you're using newer syntax than what is supported by the server environment
+- The above two things are the same thing
+- It doesn't provide identifiers such as `SpreadsheetApp`, but you can mock them
 
 ## Quickstart
 
@@ -67,11 +77,15 @@ node execute.mjs
 hello world
 ```
 
-## Using for real
+## Example
 
-It uses virtualization to run. You give it a directory of files that end with `.js`, and it concats them, and then executes the code. You can then invoke endpoints (defined functions).
+You have an appscripts project whose codebase is complicated enough that you'd like to build it with modern tools, like unit testing.
 
-For testing, substitute identifiers like `SpreadsheetApp` with objects augmented with tools such as [sinon](https://sinonjs.org) to replace their basic functionality.
+Or you're learning JavaScript using Google's AppScripts.
+
+Put all your appscript code into a directory, and then use `npm test` with ava to execute the pieces of code you're testing.
+
+Use mocks to fill in 
 
 ## Motivation
 
@@ -83,7 +97,7 @@ We could also use this to have a JavaScript runtime that works the same way as i
 
 ## Installation
 
-`npm install @classroomtechtools/virtualgs`
+`npm install @classroomtechtools/virtualgs --save`
 
 Under the hood it uses the [vm2 package](https://github.com/patriksimek/vm2). This is better than the built-in vm package, as it supports `console.log` out-of-the-box, and the `debugger` keyword.
 
@@ -93,7 +107,7 @@ A directory full of scripts (with js extension) can be run like an AppsScripts p
 
 1. Provide a directory where the scripts are, same as a project in AppsScript online
 2. It executes the global scope of the files in alphabetical order, just like the platform
-3. It then executes the intended endpoint
+3. It then executes the intended function
 4. Use of identifiers such as `SpreadsheetApp` do not work out of the box: The programmer has to mock them and send as the `global` object, where each property represents the identifier to mock, as below.
 
 So if you have a project in the online editor that has just one file, `Code.js` with `myFunction`, which lives in the 'scripts' directory:
@@ -126,7 +140,7 @@ test("do test", async t => {
   const parameters = ['some', 'params', 'to send the function'];
 
   // notice you need to await this
-  const result = await invoke('myFunction', parameters);
+  const result = await invoke('myFunction', ...parameters);
   t.true(result === 'yes');
 });
 ```
