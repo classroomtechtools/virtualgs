@@ -20,7 +20,7 @@ Run V8-compatible AppsScripts/JavaScript code locally by making a sandboxed envi
 
 ### What it doesn't do
 
-- It does not transpile your code into javascript that is 100% compatiable with the runtime on the server 
+- It does not transpile your code into javascript that is 100% compatible with the runtime on the server 
 - It doesn't tell you that you're using newer syntax than what is supported by the server environment
 - The above two things are the same thing
 - It doesn't provide identifiers such as `SpreadsheetApp`, but the idea is that you have to mock them
@@ -213,13 +213,20 @@ For help, see: https://nodejs.org/en/docs/inspector
 
 Then go to Chrome `chrome://inspect/` and find the remote target section and click "inspect", viola, you have all the tools.
 
-## Setup npm options
+## Tips & Techniques
 
 ### Setting it up yourself
 
 The author prefers the simplicity of using es modules (instead of `require` use `import`) and ava for unit tests, so there is some setup to do that on your end, too. 
 
+Get your initial npm package: 
+
 ```
+mkdir source
+cd source
+npm init
+mkdir appscripts
+mkdir tests
 npm install ava --save
 ```
 
@@ -244,6 +251,31 @@ Then set `package.json` with these values:
 npx ava --watch
 ```
 
+### Unit testing classes
+
+If you're looking on how to unit test a class definition, I use this method:
+
+```js
+// appscripts/data/d.js
+function Data_() { return Data; }
+
+class Data {
+  constructor () {
+    this.value = 'ok';
+  }
+  static convert(param) { return param + 1 }
+}
+
+// tests/data.js
+test("Some test", async t => {
+  const invoke = virtualgs('appscripts/data');
+  const Data = invoke('Data_');
+  // now we have the class
+  new Data().value;  // 'ok'
+  Data.convert(1);   // 2
+});
+```
+
 ## Unit test output
 
 This package contains unit tests which may be informative of how to use it more effectively.
@@ -262,3 +294,4 @@ This package contains unit tests which may be informative of how to use it more 
 ```
 
 Since ava runs tests async, the order of output will vary.
+ 
