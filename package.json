@@ -13,8 +13,8 @@
   "author": "Adam Morris <classroomtechtools.ctt@gmail.com> (https://classroomtechtools.com)",
   "license": "MIT",
   "devDependencies": {
-    "ava": "^3.10.1",
-    "sinon": "^9.0.2"
+    "ava": "^3.13.0",
+    "sinon": "^9.2.1"
   },
   "dependencies": {
     "vm2": "^3.9.2"

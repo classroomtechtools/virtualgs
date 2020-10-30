@@ -10,7 +10,7 @@ Run V8-compatible AppsScripts/JavaScript code locally by making a sandboxed envi
 - Allows you to develop appscript code, great for learning
 - Appscripts files that end with `.js` in a folder is the same as having all the files in the project in the online editor
 - Simple mocks for `PropertyServices`, `CacheService`, and `Logger` built-in
-- Debug appscript files with `debugger` keyword
+- Debug appscript files Chrome Dev Tools, using the `debugger` keyword
 - `console.log` supported
 - Traceback errors point to where the troublesome code is
 - Compatible with clasp
@@ -23,11 +23,11 @@ Run V8-compatible AppsScripts/JavaScript code locally by making a sandboxed envi
 - It does not transpile your code into javascript that is 100% compatiable with the runtime on the server 
 - It doesn't tell you that you're using newer syntax than what is supported by the server environment
 - The above two things are the same thing
-- It doesn't provide identifiers such as `SpreadsheetApp`, but you can mock them
+- It doesn't provide identifiers such as `SpreadsheetApp`, but the idea is that you have to mock them
 
 ## Quickstart
 
-To execute anything locally in JavaScript, you'll need a node and npm. Here are the quickest, most manual steps to try out virtualgs:
+To execute anything locally in JavaScript, you'll need a node and npm (npm version `6.14.6` or higher). Here are the quickest, most manual steps to try out virtualgs:
 
 ```bash
 mkdir virtualgs
@@ -77,16 +77,6 @@ node execute.mjs
 hello world
 ```
 
-## Example
-
-You have an appscripts project whose codebase is complicated enough that you'd like to build it with modern tools, like unit testing.
-
-Or you're learning JavaScript using Google's AppScripts.
-
-Put all your appscript code into a directory, and then use `npm test` with ava to execute the pieces of code you're testing.
-
-Use mocks to fill in identifiers that are not available locally.
-
 ## Motivation
 
 Decoupling scripts from the online V8 AppsScripts engine has potential benefits, mostly in the development cyle. We can use this tool to run test to ensure code works.
@@ -97,11 +87,21 @@ We could also use this to have a JavaScript runtime that works the same way as i
 
 ## Installation
 
+Requires npm version `6.14.6` or higher.
+
 `npm install @classroomtechtools/virtualgs --save`
 
 Under the hood it uses the [vm2 package](https://github.com/patriksimek/vm2). This is better than the built-in vm package, as it supports `console.log` out-of-the-box, and the `debugger` keyword.
 
-## Usage
+## Example
+
+You have an appscripts project whose codebase is complicated enough that you'd like to build it with modern tools, like unit testing.
+
+Or you'd like to deepen your understanding of Google's AppScripts, or maybe just curious how to use node and npm with the AppScripts stack.
+
+Put all your appscript code into a directory, and then use `npm test` with ava to execute the pieces of code you're testing. For a deep dive, you can use Chrome Dev Tools for a debugger.
+
+Use mocks to fill in identifiers that are not available locally.
 
 A directory full of scripts (with js extension) can be run like an AppsScripts project.
 
@@ -116,7 +116,8 @@ So if you have a project in the online editor that has just one file, `Code.js` 
 import virtualgs from '@classroomtechtools/virtualgs';
 
 const invoke = virtualgs('scripts');  // scripts is the directory
-invoke('myFunction', parameters)
+const parameters = [1, 2];
+invoke('myFunction', ...parameters)
   .then(result => console.log(result));
 ```
 
@@ -151,7 +152,70 @@ And this is the idea behind running tests.
  
 Even more usefully, you can use a package like `sinon` to create the globals for tests. For an example of this in use, see the internal unit tests in the `tests/other.js` file.
 
+## Tracebacks & Debugging
+
+You get full-featured and convenient debugging and inspection tools.
+
+### Use Chrome Dev Tools to debug appscripts
+
+Let's suppose you're deep into coding and you make a silly mistake in your appscripts files, by using the variable name `silly` without defining it:
+
+```js
+// ./tests/silly.js
+
+import test from 'ava';
+import virtualgs from '../src/virtualgs.js';
+
+test('TestEcho', async t => {
+    const env = virtualgs('scripts/main');  // forgot to define directory
+    await env('Echo', 'echo').then(result => {
+        t.true(result === 'echo');
+    });
+});
+
+// ./scripts/main/Code.js
+function Echo (param) {
+   silly;  // ReferenceError
+   return param;
+}
+```
+
+When you execute the tests, you'll get a very informative message:
+
+```
+  Rejected promise returned by test. Reason:
+
+  ReferenceError {
+    code: 'silly;',
+    codeLineNumber: 2,
+    directory: 'scripts/main',
+    fileName: 'Code.js',
+    function: 'Echo',
+    message: 'silly is not defined',
+  }
+
+```
+
+That way you can go right to the part of the code that is causing the problem.
+
+### Debugging with Chrome DevTools
+
+You can use the built-in debugger to step through code. Enter the `debugger` keyword wherever you're intending to take a close look at.
+
+The following command will run the tests of only this one file (which has the debugger keyword):
+
+```
+npx ava debug tests/tests.js
+
+Debugger listening on ws://127.0.0.1:9229/80d3165d-b061-4bb8-aae9-06f234cc3e36
+For help, see: https://nodejs.org/en/docs/inspector
+```
+
+Then go to Chrome `chrome://inspect/` and find the remote target section and click "inspect", viola, you have all the tools.
+
 ## Unit tests
+
+This package contains unit tests which may be informative of how to use it more effectively.
 
 ```
   ✔ common › Passes parameters
