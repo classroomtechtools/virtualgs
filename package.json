@@ -1,7 +1,7 @@
 {
   "name": "@classroomtechtools/virtualgs",
   "type": "module",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "",
   "main": "src/virtualgs.js",
   "scripts": {
