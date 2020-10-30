@@ -133,7 +133,7 @@ function myFunction () {
 
 // tests/index.js
 import test from 'ava';
-import virtualgs from 'virtualgs';
+import virtualgs from '@classroomtechtools/virtualgs';
 
 test("do test", async t => {
   const globals = {};  // you can mock things like Logger, SpreadsheetApp, etc
@@ -164,10 +164,10 @@ Let's suppose you're deep into coding and you make a silly mistake in your appsc
 // ./tests/silly.js
 
 import test from 'ava';
-import virtualgs from '../src/virtualgs.js';
+import virtualgs from '@classroomtechtools/virtualgs.js';
 
 test('TestEcho', async t => {
-    const env = virtualgs('scripts/main');  // forgot to define directory
+    const env = virtualgs('scripts/main');
     await env('Echo', 'echo').then(result => {
         t.true(result === 'echo');
     });
@@ -213,7 +213,38 @@ For help, see: https://nodejs.org/en/docs/inspector
 
 Then go to Chrome `chrome://inspect/` and find the remote target section and click "inspect", viola, you have all the tools.
 
-## Unit tests
+## Setup npm options
+
+### Setting it up yourself
+
+The author prefers the simplicity of using es modules (instead of `require` use `import`) and ava for unit tests, so there is some setup to do that on your end, too. 
+
+```
+npm install ava --save
+```
+
+Then set `package.json` with these values:
+
+```js
+{
+  "type": "module",  // tell node to use es module extensions
+  "scripts": {
+    "test": "ava"    // npm test will run testing suite
+  },
+  "ava": {
+    "verbose": true  // for better output
+  }
+}
+```
+
+### Useful commands
+
+```
+# Tests re-run automatically on save:
+npx ava --watch
+```
+
+## Unit test output
 
 This package contains unit tests which may be informative of how to use it more effectively.
 
@@ -229,3 +260,5 @@ This package contains unit tests which may be informative of how to use it more 
   ✔ errors › Errors are thrown when script contains errors
   ✔ mocks › Globals can be mocks or stubs with sinon
 ```
+
+Since ava runs tests async, the order of output will vary.
