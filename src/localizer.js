@@ -200,7 +200,7 @@ function execute(obj, self, endpoint, ...params) {
         err.directory = obj.directory;
         err.fileName = targets[0].filename
         err.function = endpoint;
-        err.codeLineNumber = lineNumber - 1;
+        err.codeLineNumber = lineNumber - targets[0].startLine;
         throw err;
     }
 }
