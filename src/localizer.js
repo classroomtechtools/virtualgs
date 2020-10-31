@@ -166,15 +166,23 @@ async function gatherCode (directory) {
             ret.files.push({
                 filename: item.filename,
                 startLine: offset,
-                endLine: offset + lines
+                endLine: offset + lines - 1
             });
-            offset += lines + 1;
+            offset += lines;
             code.push(item.contents);
         });
 
     ret.code = code.join('\n');
     ret.totalLines = totalLines;
     return ret;
+}
+
+function getTarget(files, lineNumber) {
+    const targets = files.filter(function (info) {
+        return lineNumber >= info.startLine && lineNumber <= info.endLine;
+    });
+    if (targets.length !== 1) throw new Error(`Unexpected issue occurred during execution: ${targets}`);
+    return targets[0];
 }
 
 function execute(obj, self, endpoint, ...params) {
@@ -189,18 +197,15 @@ function execute(obj, self, endpoint, ...params) {
         // figure out where the original file was
         // we have to offset lineNumber by one because startLine and endLine are closed at both ends
         const lineNumber = parseInt(err.stack.split('\n')[1].split(':')[1]) + 1;
-        const targets = obj.object.files.filter(function (info) {
-            return lineNumber >= info.startLine && lineNumber <= info.endLine;
-        });
-        if (targets.length !== 1) throw new Error("Unexpected issue when " + err.message);
+        const target = getTarget(obj.object.files, lineNumber);
 
         // display context info
         // subtract 2 from lineNumber as we are two off
         err.code = obj.object.code.split('\n')[lineNumber-2].trim();
         err.directory = obj.directory;
-        err.fileName = targets[0].filename
+        err.fileName = target.filename;
         err.function = endpoint;
-        err.codeLineNumber = lineNumber - targets[0].startLine;
+        err.codeLineNumber = lineNumber - target.startLine;
         throw err;
     }
 }
@@ -238,7 +243,19 @@ async function setup(directory,
         //TODO compiler: 'coffescript', // if you want coffeescript?
     });
 
-    vm.run(script);
+    try {
+        vm.run(script);
+    } catch (err) {
+        const traceback = err.stack.split('\n').slice(0, 2);
+        err.code = traceback[1].trim();
+        const split = traceback[0].split(':');
+        const lineNumber = parseInt(split[1]) + 1;
+        err.directory = split[0];
+        const target = getTarget(codeObject.files, lineNumber);
+        err.fileName = target.filename;
+        err.codeLineNumber = lineNumber - target.startLine;
+        throw err;
+    }
 
     // finally
     return {

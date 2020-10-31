@@ -45,7 +45,7 @@ test('Throws range error if directory cannot be found', async t => {
 });
 
 test('Errors report context, including code snippet, function, filename, directory, and line number', async t => {
-    const env = virtualgs('scripts/main')
+    const env = virtualgs('scripts/main');
     await t.throwsAsync(async function () {
         await env('LongScript').catch(err => {
             t.is(err.code, 'yikes;');
@@ -60,4 +60,17 @@ test('Errors report context, including code snippet, function, filename, directo
     }, {
         instanceOf: Error
     });
+});
+
+test("Syntax errors are reported with full traceback", async t => {
+    const env = virtualgs('scripts/errors');
+    await t.throwsAsync(async () => {
+        await env('any').catch(err => {
+            t.is(err.code, 'class Members () {');
+            t.is(err.codeLineNumber, 1);
+            t.is(err.fileName, 'Syntax.js');
+            throw err;
+        });
+
+    }, {instanceOf: SyntaxError});
 });
