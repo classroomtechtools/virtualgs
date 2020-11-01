@@ -12,7 +12,7 @@ Run V8-compatible AppsScripts/JavaScript code locally by making a sandboxed envi
 - Simple mocks for `PropertyServices`, `CacheService`, and `Logger` built-in
 - Debug appscript files Chrome Dev Tools, using the `debugger` keyword
 - `console.log` supported
-- Traceback errors point to where the troublesome code is
+- Tracebacks that occur when executing appscripts code provide full context to where the troublesome code is, even for syntax errors
 - Compatible with clasp
 - Compatible with ava for asyncronous tests (while virtualized code remains syncronous)
 - Compatible with mockers such as sinon
@@ -269,12 +269,14 @@ class Data {
 // tests/data.js
 test("Some test", async t => {
   const invoke = virtualgs('appscripts/data');
-  const Data = invoke('Data_');
+  const Data = await invoke('Data_');
   // now we have the class
   new Data().value;  // 'ok'
   Data.convert(1);   // 2
 });
 ```
+
+Note, though, that if there is an error thrown as a result of code after the `invoke('Data_')` line, the traceback will not have the full context available to it. This is because the error gets augmented with context info that virtualgs knows about, but there's no virtualgs code running in `Data.convert(1)` for example.
 
 ## Unit test output
 

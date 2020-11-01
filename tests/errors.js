@@ -58,7 +58,7 @@ test('Errors report context, including code snippet, function, filename, directo
             throw err;
         });
     }, {
-        instanceOf: Error
+        instanceOf: ReferenceError
     });
 });
 
@@ -71,6 +71,5 @@ test("Syntax errors are reported with full traceback", async t => {
             t.is(err.fileName, 'Syntax.js');
             throw err;
         });
-
     }, {instanceOf: SyntaxError});
 });
