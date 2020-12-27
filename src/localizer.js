@@ -48,7 +48,7 @@ class CacheService {
     static getUserCache () {
         return Cache.new();
     }
-    static getDocumentsCache() {
+    static getDocumentCache() {
         return Cache.new();
     }
 }
