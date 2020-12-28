@@ -36,6 +36,12 @@ class Cache {
     put (key, value) {
         this._store[key] = value;
     }
+    remove (key) {
+        this._store[key] = null;
+    }
+    removeAll() {
+        this._store = Object.create(null);
+    }
     static new () {
         return new Cache();
     }
@@ -58,7 +64,7 @@ class Props {
         this._store = Object.create(null);
     }
     getProperty(key) {
-        return this._store[key];
+        return this._store[key] || null;
     }
     getKeys() {
         return Object.keys(this._store);
