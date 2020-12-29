@@ -28,13 +28,21 @@ class ScriptApp {
 
 class Cache {
     constructor () {
-        this._store = Object.create(null);
+        this._store = {};
     }
     get (key) {
         return this._store[key];
     }
+    getAll (keys) {
+        return Object.entries(this._store)
+                     .filter( ([key, value]) => keys.includes(key) )
+                     .reduce( ([key, value], acc) => { acc[key] = value; return acc; }, {} );
+    }
     put (key, value) {
         this._store[key] = value;
+    }
+    putAll (values) {
+        this._store = {...this.store, ...values};
     }
     remove (key) {
         this._store[key] = null;
@@ -65,6 +73,9 @@ class Props {
     }
     getProperty(key) {
         return this._store[key] || null;
+    }
+    getProperties() {
+        return {...this._store};
     }
     getKeys() {
         return Object.keys(this._store);
